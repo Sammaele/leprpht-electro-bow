@@ -41,6 +41,8 @@ cmake --build build --config Release
 
 The generated VST3 plugin is placed under `build/ElectroBow_artefacts/Release/VST3/` (the exact bundle/file layout varies slightly by platform).
 
+The release workflow builds the macOS plugin as a universal binary for both Apple Silicon (`arm64`) and Intel (`x86_64`) Macs. Local builds use all available CPU cores through CMake's parallel build mode.
+
 Visual Studio is only used as the compiler/generator on Windows; no solution file is required or checked into the repository. CMake will select an appropriate native generator unless one is specified explicitly.
 
 ## Project layout

@@ -54,6 +54,7 @@ jobs:
             libxcomposite-dev \
             libxcursor-dev \
             libxinerama-dev \
+            libxi-dev \
             libxrandr-dev
 
       - name: Set up Python
@@ -62,7 +63,12 @@ jobs:
           python-version: '3.x'
 
       - name: Build VST3
+        if: matrix.name != 'macos'
         run: python build.py .ci/JUCE --config Release
+
+      - name: Build universal macOS VST3
+        if: matrix.name == 'macos'
+        run: python build.py .ci/JUCE --config Release --cmake-arg "CMAKE_OSX_ARCHITECTURES=arm64;x86_64"
 
       - name: Package VST3
         shell: bash

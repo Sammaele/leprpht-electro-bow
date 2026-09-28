@@ -15,6 +15,12 @@ def main() -> int:
     parser.add_argument("juce_path", nargs="?", help="Path to the JUCE source tree")
     parser.add_argument("--build-dir", default="build", help="CMake build directory")
     parser.add_argument("--config", default="Release", help="Build configuration")
+    parser.add_argument(
+        "--cmake-arg",
+        action="append",
+        default=[],
+        help="Additional CMake cache entry, without the -D prefix",
+    )
     args = parser.parse_args()
 
     build_dir = Path(args.build_dir)
@@ -39,12 +45,13 @@ def main() -> int:
                 "-B",
                 str(build_dir),
                 f"-DJUCE_PATH={juce_path}",
+                *[arg if arg.startswith("-D") else f"-D{arg}" for arg in args.cmake_arg],
             ],
             check=True,
         )
 
     subprocess.run(
-        ["cmake", "--build", str(build_dir), "--config", args.config],
+        ["cmake", "--build", str(build_dir), "--config", args.config, "--parallel"],
         check=True,
     )
     return 0
