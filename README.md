@@ -54,12 +54,14 @@ The vendored dependencies retain their upstream licenses in `ThirdParty/aubio-sr
 
 ## Releases
 
-Releases are built automatically by GitHub Actions for Windows, macOS, and Linux. The workflow runs when a semantic-version tag is pushed, for example:
+Releases are built automatically by GitHub Actions for Windows, macOS, and Linux. The workflow runs when either a `v1.0.0` or `1.0.0` semantic-version tag is pushed, for example:
 
 ```sh
 git tag v1.0.0
 git push origin v1.0.0
 ```
+
+The workflow file must be committed and pushed before creating the tag. It can also be started manually from the Actions tab; manual runs build the artifacts but do not publish a release.
 
 The workflow skips tests because no test suite exists yet. It builds one VST3 archive per operating system and creates release notes from the matching version section in `CHANGELOG.md`.
 
