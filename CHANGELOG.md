@@ -11,10 +11,16 @@ and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - None.
 
+## [1.0.1] - 2026-09-28
+
+### Fixed
+
+- Fixed cross-platform release packaging in the GitHub Actions workflow.
+- Added the Linux fontconfig build dependency required by JUCE.
+
 ## [1.0.0] - 2026-09-28
 
 ### Added
 
 - Initial public release of the ElectroBow VST3 plugin.
 - Cross-platform CMake build for Windows, macOS, and Linux.
-

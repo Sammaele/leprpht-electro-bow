@@ -47,6 +47,7 @@ jobs:
           sudo apt-get install --yes \
             libasound2-dev \
             libcurl4-openssl-dev \
+            libfontconfig1-dev \
             libfreetype6-dev \
             libgl1-mesa-dev \
             libx11-dev \
@@ -68,7 +69,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p package
-          cp -R build/ElectroBow_artefacts/Release/VST3 package/
+          vst3_dir="$(find build/ElectroBow_artefacts -type d -name VST3 -print -quit)"
+          test -n "$vst3_dir"
+          cp -R "$vst3_dir" package/
 
       - name: Upload VST3 artifact
         uses: actions/upload-artifact@v4
@@ -103,7 +106,9 @@ jobs:
             archive="$(basename "$artifact").zip"
             (cd "$artifact" && zip -r "$GITHUB_WORKSPACE/$archive" .)
           done
-          test "$(find . -maxdepth 1 -name 'ElectroBow-vst3-*.zip' | wc -l)" -eq 3
+          test -f ElectroBow-vst3-windows.zip
+          test -f ElectroBow-vst3-macos.zip
+          test -f ElectroBow-vst3-linux.zip
 
       - name: Extract changelog section
         shell: bash
@@ -128,6 +133,9 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           gh release create "$GITHUB_REF_NAME" \
             --verify-tag \
+            --latest \
             --title "ElectroBow $version" \
             --notes-file release-notes.md \
-            ElectroBow-vst3-*.zip
+            ElectroBow-vst3-windows.zip \
+            ElectroBow-vst3-macos.zip \
+            ElectroBow-vst3-linux.zip
