@@ -1,0 +1,79 @@
+name: Build and test
+
+on:
+  push:
+  pull_request:
+
+env:
+  JUCE_VERSION: 9.0.2
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and test (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+          - name: macos
+            os: macos-latest
+          - name: linux
+            os: ubuntu-latest
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Check out JUCE
+        uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: ${{ env.JUCE_VERSION }}
+          path: .ci/JUCE
+          fetch-depth: 1
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            libasound2-dev \
+            libcurl4-openssl-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libgl1-mesa-dev \
+            libx11-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libxinerama-dev \
+            libxrandr-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: build
+          key: electrobow-${{ runner.os }}-${{ runner.arch }}-${{ matrix.name }}-juce-${{ env.JUCE_VERSION }}-${{ hashFiles('CMakeLists.txt', 'build.py', '**/*.cpp', '**/*.h', '**/*.c') }}
+          restore-keys: |
+            electrobow-${{ runner.os }}-${{ runner.arch }}-${{ matrix.name }}-juce-${{ env.JUCE_VERSION }}-
+
+      - name: Build
+        if: matrix.name != 'macos'
+        run: python build.py .ci/JUCE --config Release
+
+      - name: Build universal macOS plugin
+        if: matrix.name == 'macos'
+        run: python build.py .ci/JUCE --config Release --cmake-arg "CMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+
+      - name: Run tests
+        run: ctest --test-dir build --build-config Release --output-on-failure

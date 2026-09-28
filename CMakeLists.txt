@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.22)
 project(ElectroBow VERSION 0.1.0)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+include(CTest)
 
 # Point this at a JUCE checkout when configuring, for example:
 #   cmake -S . -B build -DJUCE_PATH=/path/to/JUCE
@@ -226,3 +227,28 @@ target_link_libraries(ElectroBow
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+# ---------------------------------------------------------------------------
+# Unit tests.
+
+if(BUILD_TESTING)
+    add_executable(ElectroBowPitchDetectorTests
+        tests/PitchDetectorTests.cpp)
+
+    target_include_directories(ElectroBowPitchDetectorTests
+        PRIVATE
+            "${AUBIO_SRC_DIR}/src")
+
+    target_compile_features(ElectroBowPitchDetectorTests
+        PRIVATE
+            cxx_std_17)
+
+    target_link_libraries(ElectroBowPitchDetectorTests
+        PRIVATE
+            juce::juce_core
+            aubio_static)
+
+    add_test(
+        NAME ElectroBowPitchDetectorTests
+        COMMAND ElectroBowPitchDetectorTests)
+endif()

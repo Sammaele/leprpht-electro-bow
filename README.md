@@ -43,6 +43,16 @@ The generated VST3 plugin is placed under `build/ElectroBow_artefacts/Release/VS
 
 The release workflow builds the macOS plugin as a universal binary for both Apple Silicon (`arm64`) and Intel (`x86_64`) Macs. Local builds use all available CPU cores through CMake's parallel build mode.
 
+## Tests
+
+The test suite uses CTest and currently covers pitch detection from a generated 440 Hz signal:
+
+```sh
+ctest --test-dir build --build-config Release --output-on-failure
+```
+
+GitHub Actions runs the build and tests on every push and pull request for Windows, macOS, and Linux. Release builds run the same tests before packaging. CMake build directories are cached when the platform, JUCE version, and source inputs match.
+
 ## VS Code
 
 Install the **CMake Tools** and **C/C++** extensions, then configure the project once so CMake generates `build/compile_commands.json`:
