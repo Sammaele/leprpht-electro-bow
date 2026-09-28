@@ -5,9 +5,32 @@ from pathlib import Path
 import argparse
 import os
 import subprocess
+from typing import Optional
 
 
 PROJECT_DIR = Path(__file__).resolve().parent
+
+
+def has_build_files(build_dir: Path) -> bool:
+    generated_files = (
+        [build_dir / "Makefile", build_dir / "build.ninja"]
+        + list(build_dir.glob("*.sln"))
+        + list(build_dir.glob("*.xcodeproj"))
+        + list(build_dir.glob("*.vcxproj"))
+    )
+    return any(path.exists() for path in generated_files)
+
+
+def cached_juce_path(cache_file: Path) -> Optional[Path]:
+    if not cache_file.is_file():
+        return None
+
+    prefix = "JUCE_PATH:PATH="
+    for line in cache_file.read_text(encoding="utf-8", errors="replace").splitlines():
+        if line.startswith(prefix):
+            return Path(line[len(prefix) :]).expanduser().resolve()
+
+    return None
 
 
 def main() -> int:
@@ -35,8 +58,22 @@ def main() -> int:
     if not juce_path:
         parser.error("provide JUCE_PATH or pass the JUCE path as the first argument")
 
+    juce_path_obj = Path(juce_path).expanduser()
+    if not juce_path_obj.is_absolute():
+        juce_path_obj = Path.cwd() / juce_path_obj
+    juce_path_obj = juce_path_obj.resolve()
+
+    if not (juce_path_obj / "CMakeLists.txt").is_file():
+        parser.error(f"JUCE CMakeLists.txt was not found at {juce_path_obj}")
+
     cache_file = build_dir / "CMakeCache.txt"
-    if not cache_file.is_file():
+    needs_configure = (
+        not cache_file.is_file()
+        or not has_build_files(build_dir)
+        or cached_juce_path(cache_file) != juce_path_obj
+    )
+
+    if needs_configure:
         subprocess.run(
             [
                 "cmake",
@@ -44,7 +81,7 @@ def main() -> int:
                 str(PROJECT_DIR),
                 "-B",
                 str(build_dir),
-                f"-DJUCE_PATH={juce_path}",
+                f"-DJUCE_PATH={juce_path_obj}",
                 *[arg if arg.startswith("-D") else f"-D{arg}" for arg in args.cmake_arg],
             ],
             check=True,

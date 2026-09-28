@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.22)
 
 project(ElectroBow VERSION 0.1.0)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Point this at a JUCE checkout when configuring, for example:
 #   cmake -S . -B build -DJUCE_PATH=/path/to/JUCE
 set(JUCE_PATH "" CACHE PATH "Path to the JUCE source tree")

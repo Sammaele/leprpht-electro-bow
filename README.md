@@ -15,7 +15,7 @@ On Windows, install Visual Studio with the **Desktop development with C++** work
 Use the same Python command on Windows, macOS, and Linux. Pass the path to your JUCE checkout the first time:
 
 ```sh
-python3 build.py /path/to/JUCE
+python3 build.py "$HOME/path/to/JUCE"
 ```
 
 On Windows, use `python` instead of `python3` if that is the command available on your system. The script configures the project automatically when needed and builds the `Release` configuration. Subsequent builds need no JUCE argument because the path is stored in the CMake build directory:
@@ -42,6 +42,16 @@ cmake --build build --config Release
 The generated VST3 plugin is placed under `build/ElectroBow_artefacts/Release/VST3/` (the exact bundle/file layout varies slightly by platform).
 
 The release workflow builds the macOS plugin as a universal binary for both Apple Silicon (`arm64`) and Intel (`x86_64`) Macs. Local builds use all available CPU cores through CMake's parallel build mode.
+
+## VS Code
+
+Install the **CMake Tools** and **C/C++** extensions, then configure the project once so CMake generates `build/compile_commands.json`:
+
+```sh
+python3 build.py /path/to/JUCE
+```
+
+The repository includes VS Code settings that use this compilation database, providing the JUCE and aubio include paths for IntelliSense. If diagnostics remain after configuring, run **CMake: Delete Cache and Reconfigure** and reload the editor window.
 
 Visual Studio is only used as the compiler/generator on Windows; no solution file is required or checked into the repository. CMake will select an appropriate native generator unless one is specified explicitly.
 
