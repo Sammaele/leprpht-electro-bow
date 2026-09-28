@@ -25,7 +25,7 @@ python3 build.py       # macOS/Linux
 python build.py        # Windows
 ```
 
-If a JUCE checkout is placed in a `JUCE/` folder beside the project, the scripts detect it automatically. You can also set `JUCE_PATH` once instead of passing it as an argument:
+If a JUCE checkout is placed in a `JUCE/` folder beside the project, `build.py` detects it automatically. You can also set `JUCE_PATH` once instead of passing it as an argument:
 
 ```sh
 export JUCE_PATH=/path/to/JUCE       # macOS/Linux
@@ -51,3 +51,26 @@ Visual Studio is only used as the compiler/generator on Windows; no solution fil
 - `CMakeLists.txt` defines the platform-independent build.
 
 The vendored dependencies retain their upstream licenses in `ThirdParty/aubio-src/COPYING` and `ThirdParty/stk/LICENSE`.
+
+## Releases
+
+Releases are built automatically by GitHub Actions for Windows, macOS, and Linux. The workflow runs when a semantic-version tag is pushed, for example:
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow skips tests because no test suite exists yet. It builds one VST3 archive per operating system and creates release notes from the matching version section in `CHANGELOG.md`.
+
+Keep the changelog in this strict structure:
+
+```text
+## [X.Y.Z] - YYYY-MM-DD
+
+### Added
+
+- Change description.
+```
+
+Allowed category headings are `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, and `Security`. The release workflow requires the exact version heading and date before publishing.

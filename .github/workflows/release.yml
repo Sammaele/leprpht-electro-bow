@@ -1,0 +1,130 @@
+name: Build and publish release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  JUCE_VERSION: 9.0.2
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            os: windows-latest
+          - name: macos
+            os: macos-latest
+          - name: linux
+            os: ubuntu-latest
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Check out JUCE
+        uses: actions/checkout@v4
+        with:
+          repository: juce-framework/JUCE
+          ref: ${{ env.JUCE_VERSION }}
+          path: .ci/JUCE
+          fetch-depth: 1
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            libasound2-dev \
+            libcurl4-openssl-dev \
+            libfreetype6-dev \
+            libgl1-mesa-dev \
+            libx11-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxinerama-dev \
+            libxrandr-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build VST3
+        run: python build.py .ci/JUCE --config Release
+
+      - name: Package VST3
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p package
+          cp -R build/ElectroBow_artefacts/Release/VST3 package/
+
+      - name: Upload VST3 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ElectroBow-vst3-${{ matrix.name }}
+          path: package/VST3
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Download platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create release archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for artifact in dist/*; do
+            archive="$(basename "$artifact").zip"
+            (cd "$artifact" && zip -r "$GITHUB_WORKSPACE/$archive" .)
+          done
+          test "$(find . -maxdepth 1 -name 'ElectroBow-vst3-*.zip' | wc -l)" -eq 3
+
+      - name: Extract changelog section
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+
+          grep -Eq "^## \[$version\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md
+
+          awk -v version="$version" '
+            index($0, "## [" version "] -") == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+
+          test -s release-notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            --verify-tag \
+            --title "ElectroBow $version" \
+            --notes-file release-notes.md \
+            ElectroBow-vst3-*.zip
