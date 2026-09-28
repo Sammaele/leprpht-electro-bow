@@ -12,25 +12,17 @@ On Windows, install Visual Studio with the **Desktop development with C++** work
 
 ## Build
 
-The build scripts use the same workflow on all supported platforms. Pass the path to your JUCE checkout the first time:
-
-macOS/Linux:
+Use the same Python command on Windows, macOS, and Linux. Pass the path to your JUCE checkout the first time:
 
 ```sh
-./build.sh /path/to/JUCE
+python3 build.py /path/to/JUCE
 ```
 
-Windows:
-
-```bat
-build.cmd C:\path\to\JUCE
-```
-
-The script configures the project automatically when needed and builds the `Release` configuration. Subsequent builds need no JUCE argument because the path is stored in the CMake build directory:
+On Windows, use `python` instead of `python3` if that is the command available on your system. The script configures the project automatically when needed and builds the `Release` configuration. Subsequent builds need no JUCE argument because the path is stored in the CMake build directory:
 
 ```sh
-./build.sh       # macOS/Linux
-build.cmd        # Windows
+python3 build.py       # macOS/Linux
+python build.py        # Windows
 ```
 
 If a JUCE checkout is placed in a `JUCE/` folder beside the project, the scripts detect it automatically. You can also set `JUCE_PATH` once instead of passing it as an argument:
