@@ -1,18 +1,17 @@
 #pragma once
 
-#include <juce_audio_utils/juce_audio_utils.h>
 #include "PitchDetector.h"
+#include <juce_audio_utils/juce_audio_utils.h>
 
-class ElectroBowAudioProcessor : public juce::AudioProcessor
-{
-public:
+class ElectroBowAudioProcessor : public juce::AudioProcessor {
+  public:
     ElectroBowAudioProcessor();
     ~ElectroBowAudioProcessor() override = default;
 
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
-    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-    void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
+    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -26,29 +25,26 @@ public:
 
     int getNumPrograms() override;
     int getCurrentProgram() override;
-    void setCurrentProgram (int index) override;
-    const juce::String getProgramName (int index) override;
-    void changeProgramName (int index, const juce::String& newName) override;
+    void setCurrentProgram(int index) override;
+    const juce::String getProgramName(int index) override;
+    void changeProgramName(int index, const juce::String& newName) override;
 
-    void getStateInformation (juce::MemoryBlock& destData) override;
-    void setStateInformation (const void* data, int sizeInBytes) override;
+    void getStateInformation(juce::MemoryBlock& destData) override;
+    void setStateInformation(const void* data, int sizeInBytes) override;
 
-    float getPitchFrequencyHz() const noexcept
-    {
+    float getPitchFrequencyHz() const noexcept {
         return pitchDetector.getFrequencyHz();
     }
 
-    float getPitchConfidence() const noexcept
-    {
+    float getPitchConfidence() const noexcept {
         return pitchDetector.getConfidence();
     }
 
-    int getPitchMidiNote() const noexcept
-    {
+    int getPitchMidiNote() const noexcept {
         return pitchDetector.getMidiNote();
     }
 
-private:
+  private:
     PitchDetector pitchDetector;
 
     // Currently sounding MIDI note.
@@ -71,5 +67,5 @@ private:
 
     std::vector<float> monoScratch;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ElectroBowAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectroBowAudioProcessor)
 };

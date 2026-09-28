@@ -54,6 +54,31 @@ Visual Studio is only used as the compiler/generator on Windows; no solution fil
 
 The vendored dependencies retain their upstream licenses in `ThirdParty/aubio-src/COPYING` and `ThirdParty/stk/LICENSE`.
 
+## Development tools
+
+Project C/C++ files are formatted automatically by the pre-commit hook. Vendored files under `ThirdParty/` are intentionally excluded.
+
+Install LLVM, which provides `clang-format` and `clang-tidy`:
+
+```sh
+# macOS
+brew install llvm
+export PATH="$(brew --prefix llvm)/bin:$PATH"
+
+# Ubuntu/Debian
+sudo apt-get install clang-format clang-tidy
+```
+
+On Windows, install LLVM with `winget install LLVM.LLVM`, then make sure its `bin` directory is on `PATH`.
+
+Enable the committed hook once per checkout:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+Every commit will format staged project C/C++ files and stage the formatting changes. `clang-tidy` configuration is provided in `.clang-tidy`; run it from a configured CMake build directory with `compile_commands.json` when doing lint checks. Release builds do not run linting.
+
 ## Releases
 
 Releases are built automatically by GitHub Actions for Windows, macOS, and Linux. The workflow runs when either a `v1.0.0` or `1.0.0` semantic-version tag is pushed, for example:

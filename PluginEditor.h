@@ -2,17 +2,15 @@
 
 #include "PluginProcessor.h"
 
-class ElectroBowAudioProcessorEditor : public juce::AudioProcessorEditor,
-                                       private juce::Timer
-{
-public:
-    explicit ElectroBowAudioProcessorEditor (ElectroBowAudioProcessor&);
+class ElectroBowAudioProcessorEditor : public juce::AudioProcessorEditor, private juce::Timer {
+  public:
+    explicit ElectroBowAudioProcessorEditor(ElectroBowAudioProcessor&);
     ~ElectroBowAudioProcessorEditor() override = default;
 
-    void paint (juce::Graphics&) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
 
-private:
+  private:
     ElectroBowAudioProcessor& processor;
 
     juce::Label titleLabel;
@@ -23,5 +21,5 @@ private:
     // 30 Hz is plenty for a stable readout and keeps the UI thread light.
     void timerCallback() override;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ElectroBowAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectroBowAudioProcessorEditor)
 };
