@@ -243,6 +243,11 @@ if(BUILD_TESTING)
         PRIVATE
             cxx_std_17)
 
+    target_compile_definitions(ElectroBowPitchDetectorTests
+        PRIVATE
+            JUCE_WEB_BROWSER=0
+            JUCE_USE_CURL=0)
+
     target_link_libraries(ElectroBowPitchDetectorTests
         PRIVATE
             juce::juce_core
