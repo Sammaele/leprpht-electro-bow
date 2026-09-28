@@ -106,6 +106,11 @@ set(AUBIO_SOURCES
 
 add_library(aubio_static STATIC ${AUBIO_SOURCES})
 
+# The static library is linked into the shared VST3 module on Unix platforms.
+set_target_properties(aubio_static
+    PROPERTIES
+        POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(aubio_static
     PUBLIC
         "${AUBIO_SRC_DIR}/src"
@@ -145,6 +150,11 @@ set(STK_SOURCES
 )
 
 add_library(stk_bowed STATIC ${STK_SOURCES})
+
+# The static library is linked into the shared VST3 module on Unix platforms.
+set_target_properties(stk_bowed
+    PROPERTIES
+        POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(stk_bowed
     PUBLIC
