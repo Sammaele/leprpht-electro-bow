@@ -1,0 +1,46 @@
+# CMake
+build/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+Makefile
+
+# Visual Studio and other IDE files
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.*
+*.suo
+*.user
+*.userosscache
+*.VC.db
+*.VC.opendb
+
+# Build products
+*.app/
+*.dSYM/
+*.dll
+*.dylib
+*.exe
+*.lib
+*.pdb
+*.so
+*.vst3/
+*.o
+*.obj
+*.a
+*.tlog/
+
+# Local build/configuration logs
+_*.txt
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
