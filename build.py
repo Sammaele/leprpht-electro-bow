@@ -33,6 +33,18 @@ def cached_juce_path(cache_file: Path) -> Optional[Path]:
     return None
 
 
+def cached_cmake_arg(cache_file: Path, arg: str) -> bool:
+    """Return whether a requested -DNAME=value is already in the cache."""
+    name, _, value = arg.removeprefix("-D").partition("=")
+    if not name or not value:
+        return True
+    prefix = f"{name}:"
+    return any(
+        line.startswith(prefix) and line.split("=", 1)[-1] == value
+        for line in cache_file.read_text(encoding="utf-8", errors="replace").splitlines()
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("juce_path", nargs="?", help="Path to the JUCE source tree")
@@ -71,6 +83,7 @@ def main() -> int:
         not cache_file.is_file()
         or not has_build_files(build_dir)
         or cached_juce_path(cache_file) != juce_path_obj
+        or any(not cached_cmake_arg(cache_file, arg) for arg in args.cmake_arg)
     )
 
     if needs_configure:

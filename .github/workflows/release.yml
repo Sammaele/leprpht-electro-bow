@@ -62,21 +62,42 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install ccache
+        shell: bash
+        run: |
+          echo "CCACHE_DIR=$HOME/.cache/ccache" >> "$GITHUB_ENV"
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install --yes ccache
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            brew install ccache
+          else
+            choco install ccache --no-progress --yes
+          fi
+
+      - name: Cache compiler outputs
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: electrobow-ccache-${{ runner.os }}-${{ runner.arch }}-${{ matrix.name }}
+          restore-keys: |
+            electrobow-ccache-${{ runner.os }}-${{ runner.arch }}-${{ matrix.name }}
+
       - name: Cache CMake build
         uses: actions/cache@v4
         with:
           path: build
-          key: electrobow-${{ runner.os }}-${{ runner.arch }}-${{ matrix.name }}-juce-${{ env.JUCE_VERSION }}-${{ hashFiles('CMakeLists.txt', 'build.py', '**/*.cpp', '**/*.h', '**/*.c') }}
+          key: electrobow-${{ runner.os }}-${{ runner.arch }}-${{ matrix.name }}-juce-${{ env.JUCE_VERSION }}-${{ hashFiles('CMakeLists.txt', 'build.py') }}
           restore-keys: |
             electrobow-${{ runner.os }}-${{ runner.arch }}-${{ matrix.name }}-juce-${{ env.JUCE_VERSION }}-
 
       - name: Build VST3
         if: matrix.name != 'macos'
-        run: python build.py .ci/JUCE --config Release
+        run: python build.py .ci/JUCE --config Release --cmake-arg CMAKE_C_COMPILER_LAUNCHER=ccache --cmake-arg CMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build universal macOS VST3
         if: matrix.name == 'macos'
-        run: python build.py .ci/JUCE --config Release --cmake-arg "CMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+        run: python build.py .ci/JUCE --config Release --cmake-arg "CMAKE_OSX_ARCHITECTURES=arm64;x86_64" --cmake-arg CMAKE_C_COMPILER_LAUNCHER=ccache --cmake-arg CMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Run tests
         run: ctest --test-dir build --build-config Release --output-on-failure
