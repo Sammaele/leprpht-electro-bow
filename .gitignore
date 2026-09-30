@@ -45,3 +45,6 @@ __pycache__/
 *.swp
 *.swo
 *~
+
+# Local repo instructions
+instructions.md
