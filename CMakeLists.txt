@@ -4,11 +4,13 @@ cmake_minimum_required(VERSION 3.22)
 project(ElectroBow VERSION 0.1.0)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(CTest)
 
-# Point this at a JUCE checkout when configuring, for example:
-#   cmake -S . -B build -DJUCE_PATH=/path/to/JUCE
-set(JUCE_PATH "" CACHE PATH "Path to the JUCE source tree")
+# ---------------------------------------------------------------------------
+# JUCE
+
+set(JUCE_PATH "C:/JUCE" CACHE PATH "Path to the JUCE source tree")
 
 if(NOT JUCE_PATH)
     message(FATAL_ERROR
@@ -28,17 +30,23 @@ add_subdirectory("${JUCE_PATH}" JUCE)
 # Minimal static target for pitch detection using aubio's YIN algorithm.
 # FFTW is not used. pitchyinfft.c is intentionally excluded.
 
-set(AUBIO_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/aubio-src"
-    CACHE PATH "Path to the vendored aubio 0.4.9 source tree")
+set(AUBIO_SRC_DIR
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/aubio-src"
+    CACHE PATH
+    "Path to the vendored aubio 0.4.9 source tree")
 
 if(NOT EXISTS "${AUBIO_SRC_DIR}/src/aubio.h")
     message(FATAL_ERROR
-        "ElectroBow: aubio sources not found at '${AUBIO_SRC_DIR}/src/aubio.h'. "
+        "ElectroBow: aubio sources not found at "
+        "'${AUBIO_SRC_DIR}/src/aubio.h'. "
         "Expected layout: ThirdParty/aubio-src/src/aubio.h")
 endif()
 
 # Minimal replacement for aubio's waf-generated config.h.
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/aubio_config/config.h" [=[
+
+file(WRITE
+    "${CMAKE_CURRENT_BINARY_DIR}/aubio_config/config.h"
+[=[
 #ifndef AUBIO_CONFIG_H
 #define AUBIO_CONFIG_H
 
@@ -109,7 +117,6 @@ set(AUBIO_SOURCES
 
 add_library(aubio_static STATIC ${AUBIO_SOURCES})
 
-# The static library is linked into the shared VST3 module on Unix platforms.
 set_target_properties(aubio_static
     PROPERTIES
         POSITION_INDEPENDENT_CODE ON)
@@ -126,19 +133,16 @@ target_compile_definitions(aubio_static
 
 # ---------------------------------------------------------------------------
 # STK 5.0.1 - minimal bowed-string model.
-#
-# Only the classes required by stk::Bowed are compiled.
-#
-# Expected layout:
-# ThirdParty/stk/include/Bowed.h
-# ThirdParty/stk/src/Bowed.cpp
 
-set(STK_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stk"
-    CACHE PATH "Path to the vendored STK source tree")
+set(STK_SRC_DIR
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stk"
+    CACHE PATH
+    "Path to the vendored STK source tree")
 
 if(NOT EXISTS "${STK_SRC_DIR}/include/Bowed.h")
     message(FATAL_ERROR
-        "ElectroBow: STK Bowed.h not found at '${STK_SRC_DIR}/include/Bowed.h'. "
+        "ElectroBow: STK Bowed.h not found at "
+        "'${STK_SRC_DIR}/include/Bowed.h'. "
         "Expected layout: ThirdParty/stk/include/Bowed.h")
 endif()
 
@@ -154,7 +158,6 @@ set(STK_SOURCES
 
 add_library(stk_bowed STATIC ${STK_SOURCES})
 
-# The static library is linked into the shared VST3 module on Unix platforms.
 set_target_properties(stk_bowed
     PROPERTIES
         POSITION_INDEPENDENT_CODE ON)
@@ -166,17 +169,19 @@ target_include_directories(stk_bowed
 target_compile_features(stk_bowed
     PRIVATE
         cxx_std_17)
+
 target_compile_definitions(stk_bowed
     PRIVATE
         _USE_MATH_DEFINES=1)
+
 # ---------------------------------------------------------------------------
-# Build only the VST3 format for this stage.
+# VST3 plugin.
 
 juce_add_plugin(ElectroBow
     COMPANY_NAME "ElectroBow"
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
-    NEEDS_MIDI_OUTPUT TRUE
+    NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
     COPY_PLUGIN_AFTER_BUILD FALSE
@@ -200,29 +205,38 @@ target_sources(ElectroBow
     PRIVATE
         PluginProcessor.cpp
         PluginEditor.cpp
-        PitchDetector.h)
+        PluginProcessor.h
+        PluginEditor.h
+        PitchDetector.h
+        PolyPitchDetector.h
+        BowTrigger.h
+        BowEnvelope.h
+        VoiceManager.h)
 
 target_compile_features(ElectroBow
     PRIVATE
         cxx_std_17)
 
 # ---------------------------------------------------------------------------
-# Keep the third-party dependency footprint at zero.
+# Plugin compile definitions.
 
 target_compile_definitions(ElectroBow
-    PUBLIC
+    PRIVATE
+        _USE_MATH_DEFINES=1
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
 # ---------------------------------------------------------------------------
-# Link JUCE, aubio and STK bowed-string model.
+# Link JUCE, aubio and STK.
 
 target_link_libraries(ElectroBow
     PRIVATE
         juce::juce_audio_utils
+        juce::juce_dsp
         aubio_static
         stk_bowed
+
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
