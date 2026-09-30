@@ -3,17 +3,14 @@
 #include <algorithm>
 #include <cmath>
 
-class BowTrigger
-{
-public:
-    void prepare (double newSampleRate)
-    {
-        sampleRate = std::max (1.0, newSampleRate);
+class BowTrigger {
+  public:
+    void prepare(double newSampleRate) {
+        sampleRate = std::max(1.0, newSampleRate);
         reset();
     }
 
-    void reset()
-    {
+    void reset() {
         envelope = 0.0f;
         wasAboveThreshold = false;
         releaseCounter = 0;
@@ -21,87 +18,62 @@ public:
         justReleased = false;
     }
 
-    bool processSample (float input)
-    {
+    bool processSample(float input) {
         justTriggered = false;
         justReleased = false;
 
-        const float inputLevel = std::abs (input);
+        const float inputLevel = std::abs(input);
 
-        const float coefficient =
-            inputLevel > envelope
-                ? timeToCoefficient (detectorAttackMs)
-                : timeToCoefficient (detectorReleaseMs);
+        const float coefficient = inputLevel > envelope ? timeToCoefficient(detectorAttackMs)
+                                                        : timeToCoefficient(detectorReleaseMs);
 
-        envelope +=
-            (inputLevel - envelope) * coefficient;
+        envelope += (inputLevel - envelope) * coefficient;
 
-        const float level =
-            std::clamp (
-                envelope * sensitivity,
-                0.0f,
-                1.0f);
+        const float level = std::clamp(envelope * sensitivity, 0.0f, 1.0f);
 
-        if (!wasAboveThreshold &&
-            level >= triggerThreshold)
-        {
+        if (!wasAboveThreshold && level >= triggerThreshold) {
             wasAboveThreshold = true;
             releaseCounter = 0;
             justTriggered = true;
         }
 
-        if (wasAboveThreshold &&
-            level <= releaseThreshold)
-        {
+        if (wasAboveThreshold && level <= releaseThreshold) {
             ++releaseCounter;
 
-            if (releaseCounter >= releaseSamplesRequired)
-            {
+            if (releaseCounter >= releaseSamplesRequired) {
                 wasAboveThreshold = false;
                 releaseCounter = 0;
                 justReleased = true;
             }
-        }
-        else if (level > releaseThreshold)
-        {
+        } else if (level > releaseThreshold) {
             releaseCounter = 0;
         }
 
         return justTriggered;
     }
 
-    bool consumeRelease()
-    {
+    bool consumeRelease() {
         const bool result = justReleased;
         justReleased = false;
         return result;
     }
 
-    float getLevel() const noexcept
-    {
-        return std::clamp (
-            envelope * sensitivity,
-            0.0f,
-            1.0f);
+    float getLevel() const noexcept {
+        return std::clamp(envelope * sensitivity, 0.0f, 1.0f);
     }
 
-    bool isNoteActive() const noexcept
-    {
+    bool isNoteActive() const noexcept {
         return wasAboveThreshold;
     }
 
-private:
-    float timeToCoefficient (float milliseconds) const noexcept
-    {
+  private:
+    float timeToCoefficient(float milliseconds) const noexcept {
         if (milliseconds <= 0.0f)
             return 1.0f;
 
-        const double seconds =
-            static_cast<double> (milliseconds) * 0.001;
+        const double seconds = static_cast<double>(milliseconds) * 0.001;
 
-        return static_cast<float> (
-            1.0 - std::exp (
-                -1.0 / (seconds * sampleRate)));
+        return static_cast<float>(1.0 - std::exp(-1.0 / (seconds * sampleRate)));
     }
 
     double sampleRate = 44100.0;

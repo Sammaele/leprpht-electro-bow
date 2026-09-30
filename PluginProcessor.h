@@ -8,24 +8,18 @@
 #include <cmath>
 #include <vector>
 
-class ElectroBowAudioProcessor : public juce::AudioProcessor
-{
-public:
+class ElectroBowAudioProcessor : public juce::AudioProcessor {
+  public:
     ElectroBowAudioProcessor();
     ~ElectroBowAudioProcessor() override = default;
 
-    void prepareToPlay (
-        double sampleRate,
-        int samplesPerBlock) override;
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
 
     void releaseResources() override;
 
-    bool isBusesLayoutSupported (
-        const BusesLayout& layouts) const override;
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
-    void processBlock (
-        juce::AudioBuffer<float>&,
-        juce::MidiBuffer&) override;
+    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     juce::AudioProcessorEditor* createEditor() override;
 
@@ -42,64 +36,45 @@ public:
     int getNumPrograms() override;
     int getCurrentProgram() override;
 
-    void setCurrentProgram (int index) override;
+    void setCurrentProgram(int index) override;
 
-    const juce::String getProgramName (
-        int index) override;
+    const juce::String getProgramName(int index) override;
 
-    void changeProgramName (
-        int index,
-        const juce::String& newName) override;
+    void changeProgramName(int index, const juce::String& newName) override;
 
-    void getStateInformation (
-        juce::MemoryBlock& destData) override;
+    void getStateInformation(juce::MemoryBlock& destData) override;
 
-    void setStateInformation (
-        const void* data,
-        int sizeInBytes) override;
+    void setStateInformation(const void* data, int sizeInBytes) override;
 
     // ------------------------------------------------------------------
     // Temporary compatibility functions for the editor.
     // They expose the strongest detected note.
     // ------------------------------------------------------------------
 
-    float getPitchFrequencyHz() const noexcept
-    {
+    float getPitchFrequencyHz() const noexcept {
         if (polyPitchDetector.getNumNotes() <= 0)
             return 0.0f;
 
-        const auto note =
-            polyPitchDetector.getNote (0);
+        const auto note = polyPitchDetector.getNote(0);
 
-        return 440.0f *
-               std::pow (
-                   2.0f,
-                   static_cast<float> (
-                       note.midiNote - 69) /
-                   12.0f);
+        return 440.0f * std::pow(2.0f, static_cast<float>(note.midiNote - 69) / 12.0f);
     }
 
-    float getPitchConfidence() const noexcept
-    {
+    float getPitchConfidence() const noexcept {
         if (polyPitchDetector.getNumNotes() <= 0)
             return 0.0f;
 
-        return polyPitchDetector
-            .getNote (0)
-            .strength;
+        return polyPitchDetector.getNote(0).strength;
     }
 
-    int getPitchMidiNote() const noexcept
-    {
+    int getPitchMidiNote() const noexcept {
         if (polyPitchDetector.getNumNotes() <= 0)
             return 0;
 
-        return polyPitchDetector
-            .getNote (0)
-            .midiNote;
+        return polyPitchDetector.getNote(0).midiNote;
     }
 
-private:
+  private:
     PolyPitchDetector polyPitchDetector;
 
     VoiceManager voiceManager;
@@ -113,6 +88,5 @@ private:
     float attackMs = 50.0f;
     float releaseMs = 200.0f;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (
-        ElectroBowAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ElectroBowAudioProcessor)
 };
