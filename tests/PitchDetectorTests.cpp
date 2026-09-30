@@ -41,8 +41,7 @@ namespace
 
     void printDetected (
         const char* name,
-        PolyPitchDetector& detector)
-    {
+        PolyPitchDetector& detector) {
         std::cout << name << ": ";
 
         if (detector.getNumNotes() == 0)
