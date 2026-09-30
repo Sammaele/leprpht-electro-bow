@@ -6,7 +6,7 @@
 
 namespace
 {
-    constexpr double sampleRate = 44100.0;
+    constexpr double sampleRate = 44100.0; //
     constexpr float pi = 3.14159265358979323846f;
 
     float midiToFrequency (int midi) {
