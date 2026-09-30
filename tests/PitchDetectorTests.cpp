@@ -9,8 +9,7 @@ namespace
     constexpr double sampleRate = 44100.0;
     constexpr float pi = 3.14159265358979323846f;
 
-    float midiToFrequency (int midi)
-    {
+    float midiToFrequency (int midi) {
         return 440.0f *
                std::pow (
                    2.0f,
@@ -25,8 +24,7 @@ namespace
         const float frequency =
             midiToFrequency (midiNote);
 
-        for (size_t i = 0; i < buffer.size(); ++i)
-        {
+        for (size_t i = 0; i < buffer.size(); ++i) {
             const float t =
                 static_cast<float> (i) /
                 static_cast<float> (sampleRate);
@@ -55,8 +53,7 @@ namespace
 
         for (int i = 0;
              i < detector.getNumNotes();
-             ++i)
-        {
+             ++i) {
             const auto note =
                 detector.getNote (i);
 
